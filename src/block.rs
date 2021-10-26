@@ -55,6 +55,26 @@ pub fn now() -> u128{
     duration.as_secs() as u128 * 1000 + duration.subsec_millis() as u128
 }
 
+impl Block{
+    pub fn new (header:Header, data:Vec<Transaction>) -> Self{
+        Block{
+            header,
+            data,
+        }
+    }
+}
+
+impl Header{
+    pub fn new (parent: H256, nonce: u32, difficulty: H256, timestamp: u128, merkle_root: H256,) -> Self{
+        Header{
+            parent,
+            nonce,
+            difficulty,
+            timestamp,
+            merkle_root,
+        }
+    }
+}
 
 #[cfg(any(test, test_utilities))]
 pub mod test {
@@ -77,11 +97,11 @@ pub mod test {
         // temporarily use the type H256 as difficulty
         let difficulty = parent.clone();
         // generate new header
-        let new_header = Header{parent, nonce, difficulty, timestamp, merkle_root};
+        let new_header = Header::new(parent, nonce, difficulty, timestamp, merkle_root);
         let header = new_header;
         let data = transaction;
         // generate new block
-        let new_block = Block{header, data};
+        let new_block = Block::new(header, data);
         return new_block;
     }
 }

@@ -51,7 +51,7 @@ pub fn new(
     let handle = Handle {
         control_chan: signal_chan_sender,
     };
-    
+
     (ctx, handle)
 }
 
@@ -118,6 +118,7 @@ impl Context {
             }
 
             // TODO: actual mining
+            // let block = Block
 
             if let OperatingState::Run(i) = self.operating_state {
                 if i != 0 {
