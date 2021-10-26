@@ -125,25 +125,33 @@ impl Context {
             let mut blc = self.blockchain.lock().unwrap();
             // return the final block hash in the longest chain 
             let parent = blc.tip();
+            // initial the block
             let difficulty = blc.blocks.get(&parent).expect("failed").header.difficulty;
             let timestamp = now();
+            // random content
             let transaction = vec![
                 Transaction{
                     x: 1,
                     y: 1,
                 }
             ];
-            let mut nonce = 0;
+            let nonce = 0;
             let merkle_tree = MerkleTree::new(&transaction); 
             let merkle_root = merkle_tree.root();
             let data = transaction.clone();
-            let mut header = Header::new(parent, nonce, difficulty, timestamp, merkle_root);
+            let header = Header::new(parent, nonce, difficulty, timestamp, merkle_root);
             let mut block = Block::new(header, data);
 
+            // increment nounce
             for nonce_attempt in 0..(u32::max_value()){
                 block.header.nonce = nonce_attempt;
+                // calculate the hash and compare the difficulty
                 let hash = block.hash();
+                // if match, the block is minee successfully
                 if hash <= difficulty{
+                    // change the timestamp to mined time
+                    block.header.timestamp = now();
+                    // insert the block into blockchain
                     blc.insert(&block);
                 }
             }
