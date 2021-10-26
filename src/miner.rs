@@ -30,7 +30,6 @@ pub struct Context {
     operating_state: OperatingState,
     server: ServerHandle,
     blockchain: Arc<Mutex<Blockchain>>,
-
 }
 
 #[derive(Clone)]
@@ -141,6 +140,7 @@ impl Context {
             let data = transaction.clone();
             let header = Header::new(parent, nonce, difficulty, timestamp, merkle_root);
             let mut block = Block::new(header, data);
+            let mut block_num = 0;
 
             // increment nounce
             for nonce_attempt in 0..(u32::max_value()){
@@ -153,6 +153,10 @@ impl Context {
                     block.header.timestamp = now();
                     // insert the block into blockchain
                     blc.insert(&block);
+                    block_num = block_num + 1;
+                    // print the timestamp and number of blocks mined
+                    info!("Successfully mine {} block(s)", &block_num);
+                    info!("Timestamp:{}", &block.header.timestamp);
                 }
             }
 
