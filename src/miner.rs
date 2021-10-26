@@ -7,6 +7,7 @@ use std::time;
 
 use std::thread;
 use std::sync::{Arc, Mutex};
+use crate::blockchain::*;
 
 enum ControlSignal {
     Start(u64), // the number controls the lambda of interval between block generation
@@ -24,6 +25,8 @@ pub struct Context {
     control_chan: Receiver<ControlSignal>,
     operating_state: OperatingState,
     server: ServerHandle,
+    blockchain: Arc<Mutex<Blockchain>>,
+
 }
 
 #[derive(Clone)]
@@ -34,19 +37,21 @@ pub struct Handle {
 
 pub fn new(
     server: &ServerHandle,
+    blockchain: &Arc<Mutex<Blockchain>>,
 ) -> (Context, Handle) {
     let (signal_chan_sender, signal_chan_receiver) = unbounded();
-
+    
     let ctx = Context {
         control_chan: signal_chan_receiver,
         operating_state: OperatingState::Paused,
         server: server.clone(),
+        blockchain: Arc::clone(blockchain),
     };
 
     let handle = Handle {
         control_chan: signal_chan_sender,
     };
-
+    
     (ctx, handle)
 }
 
