@@ -18,7 +18,7 @@ impl Blockchain {
         let data = vec![];
         let parent = [0;32].into();
         let nonce = 1;
-        let difficulty = [0;32].into();
+        let difficulty = [1;32].into();
         let timestamp = 2;
         let merkle_root = [0;32].into();
         let genesis_header = Header{parent, nonce, difficulty, timestamp, merkle_root};

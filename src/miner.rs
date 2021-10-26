@@ -8,6 +8,10 @@ use std::time;
 use std::thread;
 use std::sync::{Arc, Mutex};
 use crate::blockchain::*;
+use crate::block::*;
+use crate::transaction::*;
+use crate::crypto::merkle::*;
+use crate::crypto::hash::{H256, Hashable};
 
 enum ControlSignal {
     Start(u64), // the number controls the lambda of interval between block generation
@@ -118,7 +122,31 @@ impl Context {
             }
 
             // TODO: actual mining
-            // let block = Block
+            let mut blc = self.blockchain.lock().unwrap();
+            // return the final block hash in the longest chain 
+            let parent = blc.tip();
+            let difficulty = blc.blocks.get(&parent).expect("failed").header.difficulty;
+            let timestamp = now();
+            let transaction = vec![
+                Transaction{
+                    x: 1,
+                    y: 1,
+                }
+            ];
+            let mut nonce = 0;
+            let merkle_tree = MerkleTree::new(&transaction); 
+            let merkle_root = merkle_tree.root();
+            let data = transaction.clone();
+            let mut header = Header::new(parent, nonce, difficulty, timestamp, merkle_root);
+            let mut block = Block::new(header, data);
+
+            for nonce_attempt in 0..(u32::max_value()){
+                block.header.nonce = nonce_attempt;
+                let hash = block.hash();
+                if hash <= difficulty{
+                    blc.insert(&block);
+                }
+            }
 
             if let OperatingState::Run(i) = self.operating_state {
                 if i != 0 {

@@ -5,8 +5,8 @@ use rand::{Rng};
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Transaction {
     // put anyting in the transaction
-    x: i32,
-    y: i32
+    pub x: i32,
+    pub y: i32
     // input? output?
 }
 
