@@ -1,7 +1,4 @@
 use super::hash::{Hashable, H256};
-// use ring::digest::{Context, SHA256};
-// use std::rc::Rc;
-// use std::cell::RefCell;
 
 // Merkle node
 #[derive(Debug, Default, Clone)]

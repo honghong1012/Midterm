@@ -97,6 +97,7 @@ impl Context {
 
     fn miner_loop(&mut self) {
         // main mining loop
+        let mut block_num = 0;
         loop {
             // check and react to control signals
             match self.operating_state {
@@ -140,14 +141,13 @@ impl Context {
             let data = transaction.clone();
             let header = Header::new(parent, nonce, difficulty, timestamp, merkle_root);
             let mut block = Block::new(header, data);
-            let mut block_num = 0;
 
             // increment nounce
             for nonce_attempt in 0..(u32::max_value()){
                 block.header.nonce = nonce_attempt;
                 // calculate the hash and compare the difficulty
                 let hash = block.hash();
-                // if match, the block is minee successfully
+                // if match, the block is mined successfully
                 if hash <= difficulty{
                     // change the timestamp to mined time
                     block.header.timestamp = now();
