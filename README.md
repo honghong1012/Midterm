@@ -29,6 +29,7 @@ You need to run the project on your machines. **We strongly recommend Linux or M
 - finish the behaviour that workers receive different types of messages (worker.rs, message.rs)
 - make miner broadcast to network(peer) once it successfully mined a qualified block(miner.rs)
 - not yet tested
+
 18:01 Nov 3
 - finish the counter of blockchain(miner.rs, blockchain.rs)
 - skip the blocks if the parent is lost(worker.rs)
