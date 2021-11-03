@@ -1,6 +1,7 @@
-# ELEC_ENG/COMP_ENG 334: Fundamentals of Blockchains and Decentralization
+# NU ce334
+# Midterm project (course only)
 
-Welcome! This is the repository for required projects of the above course.
+This is the Midterm project for course only.
 
 ## Project Suggestion
 You need to run the project on your machines. **We strongly recommend Linux or Mac OS.** On Windows, some package referred by the project has bugs, and we recommend Ubuntu subsystem on Windows.
@@ -17,16 +18,18 @@ You need to run the project on your machines. **We strongly recommend Linux or M
 
 ## Midterm Project
 
-- You may form a team of 2 with another student in this class for this project.  You do not have to form a team.  If you do at some point, you must work as a team through the end of Part 6.
 - [Part 1](MidtermProject1).
 - [Part 2](MidtermProject2).
-- [Part 3](MidtermProject3).
+- [Part 3](MidtermProject3). Due 11 PM, Nov 4, 2021
 - [Part 4](MidtermProject4).
 - [Part 5](MidtermProject5).
 - [Part 6](MidtermProject6).
 
-## Policy
-Submissions later than due date will get 0 points.
+## Update details
+15:26 Nov 3
+- finish the behaviour that workers receive different types of messages (worker.rs, message.rs)
+- make miner broadcast to network(peer) once it successfully mined a qualified block(miner.rs)
+- not yet tested
 
 ## Acknowledgement
 We thank Professor Pramod Viswanath and Xuechao Wang for developing these course projects and for sharing their repository.
