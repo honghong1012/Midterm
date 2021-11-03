@@ -3,14 +3,13 @@ use crate::network::message::Message;
 use log::info;
 use crossbeam::channel::{unbounded, Receiver, Sender, TryRecvError};
 use std::time;
-use crate::network::{peer, message};
 use std::thread;
 use std::sync::{Arc, Mutex};
 use crate::blockchain::*;
 use crate::block::*;
 use crate::transaction::*;
 use crate::crypto::merkle::*;
-use crate::crypto::hash::{H256, Hashable};
+use crate::crypto::hash::Hashable;
 
 enum ControlSignal {
     Start(u64), // the number controls the lambda of interval between block generation
@@ -184,6 +183,9 @@ impl Context {
                     // print the timestamp and number of blocks mined
                     info!("Successfully mine {} block(s)", &block_num);
                     info!("Timestamp:{}", &block.header.timestamp);
+                    let tip = blc.tip();
+                    let num_in_blc = blc.heights.get(&tip).expect("failed");
+                    info!("We have {} blocks in our blockchain", &num_in_blc);
                 }
             }
 
