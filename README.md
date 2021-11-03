@@ -1,5 +1,4 @@
-# NU ce334
-# Midterm project (course only)
+# NU ce334 project (course only)
 
 This is the Midterm project for course only.
 
