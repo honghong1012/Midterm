@@ -67,6 +67,7 @@ fn main() {
     server_ctx.start().unwrap();
 
     // create new blockchain
+    // only have the genisis block
     let mut blockchain = Arc::new(Mutex::new(Blockchain::new()));
 
     // start the worker
@@ -82,6 +83,8 @@ fn main() {
         p2p_workers,
         msg_rx,
         &server,
+        // worker process share the ownership
+        &blockchain,
     );
     worker_ctx.start();
 
@@ -89,6 +92,7 @@ fn main() {
     // start the miner
     let (miner_ctx, miner) = miner::new(
         &server,
+        // miner share the ownership
         &blockchain,
     );
     miner_ctx.start();

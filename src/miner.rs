@@ -1,10 +1,9 @@
 use crate::network::server::Handle as ServerHandle;
-
+use crate::network::message::Message;
 use log::info;
-
 use crossbeam::channel::{unbounded, Receiver, Sender, TryRecvError};
 use std::time;
-
+use crate::network::{peer, message};
 use std::thread;
 use std::sync::{Arc, Mutex};
 use crate::blockchain::*;
@@ -98,6 +97,9 @@ impl Context {
     fn miner_loop(&mut self) {
         // main mining loop
         let mut block_num = 0;
+        // connect server to broadcast
+        let server = self.server.clone();
+        let mut newblockhashes = Vec::new();
         loop {
             // check and react to control signals
             match self.operating_state {
@@ -122,28 +124,49 @@ impl Context {
             }
 
             // TODO: actual mining
-            let mut blc = self.blockchain.lock().unwrap();
-            // return the final block hash in the longest chain 
-            let parent = blc.tip();
-            // initial the block
-            let difficulty = blc.blocks.get(&parent).expect("failed").header.difficulty;
-            let timestamp = now();
-            // random content
-            let transaction = vec![
-                Transaction{
-                    x: 1,
-                    y: 1,
-                }
-            ];
-            let nonce = 0;
-            let merkle_tree = MerkleTree::new(&transaction); 
-            let merkle_root = merkle_tree.root();
-            let data = transaction.clone();
-            let header = Header::new(parent, nonce, difficulty, timestamp, merkle_root);
-            let mut block = Block::new(header, data);
+            // let mut blc = self.blockchain.lock().unwrap();
+            // // return the final block hash in the longest chain 
+            // let parent = blc.tip();
+            // // initial the block
+            // let difficulty = blc.blocks.get(&parent).expect("failed").header.difficulty;
+            // let timestamp = now();
+            // // random content
+            // let transaction = vec![
+            //     Transaction{
+            //         x: 1,
+            //         y: 1,
+            //     }
+            // ];
+            // let nonce = 0;
+            // let merkle_tree = MerkleTree::new(&transaction); 
+            // let merkle_root = merkle_tree.root();
+            // let data = transaction.clone();
+            // let header = Header::new(parent, nonce, difficulty, timestamp, merkle_root);
+            // let mut block = Block::new(header, data);
 
             // increment nounce
             for nonce_attempt in 0..(u32::max_value()){
+                // everytime to calculate the nounce we need to access the lock(in 'for' loop or out of 'for' loop?)
+                let mut blc = self.blockchain.lock().unwrap();
+                // return the final block hash in the longest chain 
+                let parent = blc.tip();
+                // initial the block
+                let difficulty = blc.blocks.get(&parent).expect("failed").header.difficulty;
+                let timestamp = now();
+                // random content
+                let transaction = vec![
+                    Transaction{
+                      x: 1,
+                      y: 1,
+                     }
+                ];
+                let nonce = 0;
+                let merkle_tree = MerkleTree::new(&transaction); 
+                let merkle_root = merkle_tree.root();
+                let data = transaction.clone();
+                let header = Header::new(parent, nonce, difficulty, timestamp, merkle_root);
+                let mut block = Block::new(header, data);
+
                 block.header.nonce = nonce_attempt;
                 // calculate the hash and compare the difficulty
                 let hash = block.hash();
@@ -153,7 +176,11 @@ impl Context {
                     block.header.timestamp = now();
                     // insert the block into blockchain
                     blc.insert(&block);
+                    // change the blocknum
                     block_num = block_num + 1;
+                    // broadcast the new block hashes to peer
+                    newblockhashes.push(hash);
+                    server.broadcast(Message::NewBLockHashes(newblockhashes.clone()));
                     // print the timestamp and number of blocks mined
                     info!("Successfully mine {} block(s)", &block_num);
                     info!("Timestamp:{}", &block.header.timestamp);
