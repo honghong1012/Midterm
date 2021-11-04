@@ -39,5 +39,9 @@ You need to run the project on your machines. **We strongly recommend Linux or M
 22:01 Nov 3
 - fix bugs(miner.rs),timestamp cannot be changed after hash being calculated
 - experiment in Ubuntu, and got the expected behaivor
+
+23:34 Nov 3
+- implement optional buffer successfully(worker.rs)
+- change the difficulty to adjust the blocks mining rate(blockchain.rs)
 ## Acknowledgement
 We thank Professor Pramod Viswanath and Xuechao Wang for developing these course projects and for sharing their repository.
