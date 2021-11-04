@@ -35,5 +35,9 @@ You need to run the project on your machines. **We strongly recommend Linux or M
 - skip the blocks if the parent is lost(worker.rs)
 - change the difficulty(for testing in Ubuntu)(blockchain.rs)
 - test result: first two process can match each other at first(after some time, they have difference of almost 50 blocks, dont know why), the third one did not match.
+
+22:01 Nov 3
+- fix bugs(miner.rs),timestamp cannot be changed after hash being calculated
+- experiment in Ubuntu, and got the expected behaivor
 ## Acknowledgement
 We thank Professor Pramod Viswanath and Xuechao Wang for developing these course projects and for sharing their repository.
