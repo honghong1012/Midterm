@@ -118,7 +118,7 @@ impl Context {
                             // count the numbers of block in the blockchain
                             let tip = blc.tip();
                             let num_in_blc = blc.heights.get(&tip).expect("failed");
-                            info!("We have {} blocks in our blockchain", &num_in_blc);
+                            info!("We have {} blocks in our blockchain(w)", &num_in_blc);
                         }
                     }
                     

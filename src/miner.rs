@@ -151,7 +151,6 @@ impl Context {
                 let parent = blc.tip();
                 // initial the block
                 let difficulty = blc.blocks.get(&parent).expect("failed").header.difficulty;
-                let timestamp = now();
                 // random content
                 let transaction = vec![
                     Transaction{
@@ -163,16 +162,15 @@ impl Context {
                 let merkle_tree = MerkleTree::new(&transaction); 
                 let merkle_root = merkle_tree.root();
                 let data = transaction.clone();
+                // we cannot change the timestamp after the hash has been caculated
+                let timestamp = now();
                 let header = Header::new(parent, nonce, difficulty, timestamp, merkle_root);
                 let mut block = Block::new(header, data);
-
                 block.header.nonce = nonce_attempt;
                 // calculate the hash and compare the difficulty
                 let hash = block.hash();
                 // if match, the block is mined successfully
                 if hash <= difficulty{
-                    // change the timestamp to mined time
-                    block.header.timestamp = now();
                     // insert the block into blockchain
                     blc.insert(&block);
                     // change the blocknum
@@ -185,7 +183,7 @@ impl Context {
                     info!("Timestamp:{}", &block.header.timestamp);
                     let tip = blc.tip();
                     let num_in_blc = blc.heights.get(&tip).expect("failed");
-                    info!("We have {} blocks in our blockchain", &num_in_blc);
+                    info!("We have {} blocks in our blockchain(m)", &num_in_blc);
                 }
             }
 
