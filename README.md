@@ -20,28 +20,16 @@ You need to run the project on your machines. **We strongly recommend Linux or M
 - [Part 1](MidtermProject1).
 - [Part 2](MidtermProject2).
 - [Part 3](MidtermProject3). Due 11 PM, Nov 4, 2021
-- [Part 4](MidtermProject4).
+- [Part 4](MidtermProject4). Due 11 PM, Nov 11, 2021
 - [Part 5](MidtermProject5).
 - [Part 6](MidtermProject6).
 
 ## Update details
-15:26 Nov 3
-- finish the behaviour that workers receive different types of messages (worker.rs, message.rs)
-- make miner broadcast to network(peer) once it successfully mined a qualified block(miner.rs)
+21:50 Nov 8
+- finish the checks (worker.rs)
+- turn the orphan block handler into iteratively
 - not yet tested
 
-18:01 Nov 3
-- finish the counter of blockchain(miner.rs, blockchain.rs)
-- skip the blocks if the parent is lost(worker.rs)
-- change the difficulty(for testing in Ubuntu)(blockchain.rs)
-- test result: first two process can match each other at first(after some time, they have difference of almost 50 blocks, dont know why), the third one did not match.
 
-22:01 Nov 3
-- fix bugs(miner.rs),timestamp cannot be changed after hash being calculated
-- experiment in Ubuntu, and got the expected behaivor
-
-23:34 Nov 3
-- implement optional buffer successfully(worker.rs)
-- change the difficulty to adjust the blocks mining rate(blockchain.rs)
 ## Acknowledgement
 We thank Professor Pramod Viswanath and Xuechao Wang for developing these course projects and for sharing their repository.

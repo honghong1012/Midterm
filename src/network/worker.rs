@@ -101,12 +101,20 @@ impl Context {
                     for block in &blocks{
                         let hash = &block.hash();
                         if !blc.blocks.contains_key(hash){// if the block doesn't exisit in the blockchain
+                            // TODO: need to check the new block
+                            // 1. pow check 2. parent check 3. orphan block handler
+                            // PoW check
                             let now_block = block.clone();
+                            let difficulty = block.header.difficulty.clone();
+                            if hash > &difficulty{
+                                // if pow doesn't match, just ignore this new block
+                                continue;
+                            }
                             // use the parent's hash to find parent's height
                             let parent_hash = block.header.parent.clone();
                             // if the parent has not inserted, we cannot find the height in the hash map
                             // need to discord the panic situation
-                            // let parent_height = blc.heights.get(&parent_hash).expect("failed");
+                            // Parent check
                             let parent_result = blc.heights.get(&parent_hash);
                             let mut now_height = 0;
                             let mut flag = 0;
@@ -115,21 +123,34 @@ impl Context {
                                 Some(v) => now_height = v + 1,
                             }
                             if flag == 1{
+                                // key:parent_hash value:child_hash
                                 buffer_hash.insert(parent_hash.clone(), hash.clone());
+                                // key:child_hash value:child_block
                                 buffer_block.insert(hash.clone(), now_block.clone());
+                                // lost_block store what we have hash but no blocks
                                 lost_block.push(parent_hash.clone());
+                                // send a get block message
                                 peer.write(Message::GetBlocks(lost_block.clone()));
                                 continue;
                             }
-                            // insert height and block
+                            let parent_block = blc.blocks.get(&parent_hash).expect("failed");
+                            let parent_difficulty = parent_block.header.parent.clone();
+                            if difficulty != parent_difficulty{
+                                // if difficulty doesn't match, just ignore this new block
+                                continue;
+                            }
+                            // if blocks have parents then insert block and height
                             blc.heights.insert(hash.clone(), now_height);
                             blc.blocks.insert(hash.clone(), now_block);
                             new_blocks.push(hash.clone());
-                            // after inserting a new block, we need to look through buffer
-                            if buffer_hash.contains_key(hash){
-                                let child_hash = buffer_hash.get(&hash).expect("failed");
+                            // after inserting a new block, we need to look through
+                            // if the new block is some orphan's parents
+                            // turn into iteratively
+                            let mut p_hash = hash.clone();
+                            while buffer_hash.contains_key(&p_hash){
+                                let child_hash = buffer_hash.get(&p_hash).expect("failed").clone();
                                 let child_block = buffer_block.get(&child_hash).expect("failed");
-                                let new_p_height = blc.heights.get(&hash).expect("failed");
+                                let new_p_height = blc.heights.get(&p_hash).expect("failed");
                                 let child_height = new_p_height + 1;
                                 blc.blocks.insert(child_hash.clone(), child_block.clone());
                                 blc.heights.insert(child_hash.clone(), child_height);
@@ -137,9 +158,24 @@ impl Context {
                                 // need to broadcast it and delete it from the buffer
                                 new_blocks.push(child_hash.clone());
                                 buffer_block.remove(&child_hash);
+                                buffer_hash.remove(&p_hash);
+                                p_hash = child_hash.clone()
                             }
-                            buffer_hash.remove(&hash);
+                            // if buffer_hash.contains_key(hash){
+                            //     let child_hash = buffer_hash.get(&hash).expect("failed");
+                            //     let child_block = buffer_block.get(&child_hash).expect("failed");
+                            //     let new_p_height = blc.heights.get(&hash).expect("failed");
+                            //     let child_height = new_p_height + 1;
+                            //     blc.blocks.insert(child_hash.clone(), child_block.clone());
+                            //     blc.heights.insert(child_hash.clone(), child_height);
+                            //     // after inserting the lost hash in buffer
+                            //     // need to broadcast it and delete it from the buffer
+                            //     new_blocks.push(child_hash.clone());
+                            //     buffer_block.remove(&child_hash);
+                            // }
+                            // buffer_hash.remove(&hash);
                             // need to broadcast after inserted a new block
+                            self.server.broadcast(Message::NewBLockHashes(new_blocks.clone()));
                             peer.write(Message::NewBLockHashes(new_blocks.clone()));
                             // count the numbers of block in the blockchain
                             let tip = blc.tip();

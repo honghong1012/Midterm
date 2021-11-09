@@ -4,6 +4,29 @@ Due 11 PM, October 26, 2021
 
 In this part of midterm project, you are going to implement the **network** module of Bitcoin client. The network module is in charge of communicating with other nodes/clients. It forms the peer-to-peer (p2p) network and uses gossip protocol to exchange data, including blocks and transactions. (Transactions will not be covered in this part.)
 
+## Update details
+15:26 Nov 3
+- finish the behaviour that workers receive different types of messages (worker.rs, message.rs)
+- make miner broadcast to network(peer) once it successfully mined a qualified block(miner.rs)
+- not yet tested
+
+18:01 Nov 3
+- finish the counter of blockchain(miner.rs, blockchain.rs)
+- skip the blocks if the parent is lost(worker.rs)
+- change the difficulty(for testing in Ubuntu)(blockchain.rs)
+- test result: first two process can match each other at first(after some time, they have difference of almost 50 blocks, dont know why), the third one did not match.
+
+22:01 Nov 3
+- fix bugs(miner.rs),timestamp cannot be changed after hash being calculated
+- experiment in Ubuntu, and got the expected behaivor
+
+23:34 Nov 3
+- implement optional buffer successfully(worker.rs)
+- change the difficulty to adjust the blocks mining rate(blockchain.rs)
+
+## Acknowledgement
+We thank Professor Pramod Viswanath and Xuechao Wang for developing these course projects and for sharing their repository.
+
 ## Repository management and submission
 
 1. We suggest you to continue to work on your repo of midterm project. 
