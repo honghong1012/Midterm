@@ -30,6 +30,11 @@ You need to run the project on your machines. **We strongly recommend Linux or M
 - turn the orphan block handler into iteratively
 - not yet tested
 
+8:37 Nov 9
+- fix bugs(worker.rs)
+- adjust the mining rate in ubuntu (blockchain.rs)
+- not yet measured the size of blocks
+
 
 ## Acknowledgement
 We thank Professor Pramod Viswanath and Xuechao Wang for developing these course projects and for sharing their repository.

@@ -7,6 +7,7 @@ use log::{debug, warn};
 use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
 use crate::blockchain::*;
+use crate::block::*;
 use std::thread;
 use log::info;
 
@@ -101,9 +102,16 @@ impl Context {
                     for block in &blocks{
                         let hash = &block.hash();
                         if !blc.blocks.contains_key(hash){// if the block doesn't exisit in the blockchain
-                            // TODO: need to check the new block
+                            // Checks
                             // 1. pow check 2. parent check 3. orphan block handler
                             // PoW check
+                            if !buffer_block.contains_key(hash){
+                                // first time receive this block,calculate the delay
+                                let recevie_time = now();
+                                let b_tsp = block.header.timestamp.clone();
+                                let block_delay = recevie_time - b_tsp;
+                                info!("block delay: {} (w)", &block_delay);
+                            }
                             let now_block = block.clone();
                             let difficulty = block.header.difficulty.clone();
                             if hash > &difficulty{
@@ -134,7 +142,7 @@ impl Context {
                                 continue;
                             }
                             let parent_block = blc.blocks.get(&parent_hash).expect("failed");
-                            let parent_difficulty = parent_block.header.parent.clone();
+                            let parent_difficulty = parent_block.header.difficulty.clone();
                             if difficulty != parent_difficulty{
                                 // if difficulty doesn't match, just ignore this new block
                                 continue;
@@ -161,19 +169,6 @@ impl Context {
                                 buffer_hash.remove(&p_hash);
                                 p_hash = child_hash.clone()
                             }
-                            // if buffer_hash.contains_key(hash){
-                            //     let child_hash = buffer_hash.get(&hash).expect("failed");
-                            //     let child_block = buffer_block.get(&child_hash).expect("failed");
-                            //     let new_p_height = blc.heights.get(&hash).expect("failed");
-                            //     let child_height = new_p_height + 1;
-                            //     blc.blocks.insert(child_hash.clone(), child_block.clone());
-                            //     blc.heights.insert(child_hash.clone(), child_height);
-                            //     // after inserting the lost hash in buffer
-                            //     // need to broadcast it and delete it from the buffer
-                            //     new_blocks.push(child_hash.clone());
-                            //     buffer_block.remove(&child_hash);
-                            // }
-                            // buffer_hash.remove(&hash);
                             // need to broadcast after inserted a new block
                             self.server.broadcast(Message::NewBLockHashes(new_blocks.clone()));
                             peer.write(Message::NewBLockHashes(new_blocks.clone()));
