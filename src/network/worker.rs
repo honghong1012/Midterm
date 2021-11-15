@@ -49,6 +49,7 @@ impl Context {
         // create hashmap to store the parent-losting block
         let mut buffer_hash = HashMap::new();
         let mut buffer_block = HashMap::new();
+        let mut delay_list = Vec::new();
         loop {
             let msg = self.msg_chan.recv().unwrap();
             let (msg, peer) = msg;
@@ -111,6 +112,12 @@ impl Context {
                                 let b_tsp = block.header.timestamp.clone();
                                 let block_delay = recevie_time - b_tsp;
                                 info!("block delay: {} (w)", &block_delay);
+                                // compute the average delay
+                                delay_list.push(block_delay);
+                                let average_delay : u128 = delay_list.iter().sum();
+                                let average_delay = average_delay / (delay_list.len() as u128);
+                                info!("Average block delay:{}(w)", &average_delay);
+
                             }
                             let now_block = block.clone();
                             let difficulty = block.header.difficulty.clone();

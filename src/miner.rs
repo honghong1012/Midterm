@@ -178,6 +178,9 @@ impl Context {
                     // broadcast the new block hashes to peer
                     newblockhashes.push(hash);
                     server.broadcast(Message::NewBLockHashes(newblockhashes.clone()));
+                    // print the length of the block
+                    let block_size: Vec<u8> = bincode::serialize(&block).unwrap();
+                    info!("Current block size is {}", &block_size.len());
                     // print the timestamp and number of blocks mined
                     info!("Successfully mine {} block(s)", &block_num);
                     info!("Timestamp:{}", &block.header.timestamp);
