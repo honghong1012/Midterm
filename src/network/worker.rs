@@ -58,6 +58,7 @@ impl Context {
             let msg = self.msg_chan.recv().unwrap();
             let (msg, peer) = msg;
             let mut blc = self.blockchain.lock().unwrap();
+            let mut mp = self.mempool.lock().unwrap();
             let msg: Message = bincode::deserialize(&msg).unwrap();
             match msg {
                 Message::Ping(nonce) => {
@@ -193,15 +194,32 @@ impl Context {
                 }
 
                 Message::NewTransactionHashes(newtxhashes) => {
-
+                    let mut lost_tx = Vec::new();
+                    for hash in &newtxhashes{
+                        if !mp.valid_tx.contains_key(&hash){
+                            lost_tx.push(hash.clone());
+                        }
+                    }
+                    peer.write(Message::GetTransactions(lost_tx));
                 }
 
                 Message::GetTransactions(txhashes) => {
-
+                    let mut exisited_hashes = Vec::new();
+                    for hash in &txhashes{
+                        if mp.valid_tx.contains_key(&hash){
+                            let tx_info = mp.valid_tx.get(&hash).expect("failed");
+                            exisited_hashes.push(tx_info.clone());
+                        }
+                    }
+                    peer.write(Message::Transactions(exisited_hashes));
                 }
 
                 Message::Transactions(transactions) => {
-
+                    // if get transactions, do checks
+                    // 1.check if signature is signed correctly by the public key
+                    // 2.double spending check
+                    // 3.when get blocks, check transactions again(send message to get transactions info)
+                    // mempool operations!
                 }
             }
         }

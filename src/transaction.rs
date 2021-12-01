@@ -28,7 +28,7 @@ pub struct Transaction {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct SignedTansaction {
+pub struct SignedTransaction {
     // put the transaction and signature together
     pub tx:Transaction,
     pub signature:Vec<u8>,//?
@@ -46,9 +46,9 @@ impl Transaction{
     }
 }
 
-impl SignedTansaction{
+impl SignedTransaction{
     pub fn new (tx:Transaction,signature:Vec<u8>,public_key:Vec<u8>) -> Self{
-        SignedTansaction{
+        SignedTransaction{
             tx,
             signature,
             public_key,
@@ -56,20 +56,26 @@ impl SignedTansaction{
     }
 }
 
-// impl PartialEq for Transaction {
-//     fn eq(&self, other: &Self) -> bool {
-//         self.recipient_address == other.recipient_address && self.value == other.value && self.account_nonce == other.account_nonce
-//     }
-// }
+impl Hashable for Transaction{
+    fn hash(&self) -> H256 {
+        let transaction_bytes = bincode::serialize(self).unwrap();
+        let result = ring::digest::digest(&ring::digest::SHA256, &transaction_bytes);
+        let transaction_hash = result.into();
+        return transaction_hash;
+    }
+}
 
-// impl PartialEq for SignedTansaction {
-//     fn eq(&self, other: &Self) -> bool {
-//         self.tx == other.tx && self.signature == other.signature && self.public_key == other.public_key
-//     }
-// }
+impl Hashable for SignedTransaction{
+    fn hash(&self) -> H256 {
+        let transaction_bytes = bincode::serialize(self).unwrap();
+        let result = ring::digest::digest(&ring::digest::SHA256, &transaction_bytes);
+        let transaction_hash = result.into();
+        return transaction_hash;
+    }
+}
 
 pub struct Mempool {
-    pub valid_tx: HashMap<H256,SignedTansaction>,
+    pub valid_tx: HashMap<H256,SignedTransaction>,
 }
 
 impl Mempool{
@@ -164,12 +170,14 @@ impl Context {
             let new_tx = Transaction::new(recipient_address.into(), value, account_nonce);
             let signature = sign(&new_tx, &send).as_ref().to_vec();
             let send_pub = send.public_key().as_ref().to_vec();
-            let signed_tx = SignedTansaction::new(new_tx, signature, send_pub);
+            let signed_tx = SignedTransaction::new(new_tx, signature, send_pub);
             let newtxhash = signed_tx.hash();
             newtxhashes.push(newtxhash);
             // save in memepool
+            // actually we need to broadcast to worker first,then worker check and add it into mempool
             mp.valid_tx.insert(newtxhash.clone(),signed_tx.clone());
             server.broadcast(Message::NewTransactionHashes(newtxhashes.clone()));
+            info!("new transaction occured!");//test
         }
 
     }

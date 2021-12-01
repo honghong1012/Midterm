@@ -22,23 +22,7 @@ pub struct Header {
     pub merkle_root: H256,
 }
 
-impl Hashable for Transaction{
-    fn hash(&self) -> H256 {
-        let transaction_bytes = bincode::serialize(self).unwrap();
-        let result = ring::digest::digest(&ring::digest::SHA256, &transaction_bytes);
-        let transaction_hash = result.into();
-        return transaction_hash;
-    }
-}
 
-impl Hashable for SignedTansaction{
-    fn hash(&self) -> H256 {
-        let transaction_bytes = bincode::serialize(self).unwrap();
-        let result = ring::digest::digest(&ring::digest::SHA256, &transaction_bytes);
-        let transaction_hash = result.into();
-        return transaction_hash;
-    }
-}
 
 impl Hashable for Header {
     fn hash(&self) -> H256 {
@@ -92,7 +76,7 @@ pub mod test {
 
     pub fn generate_random_block(parent: &H256) -> Block {
         // generate the random transactions
-        let transaction: Vec<Transaction> = vec![Default::default(), Default::default()];
+        let transaction: Vec<SignedTransaction> = vec![Default::default(), Default::default()];
         // use merkle tree to caculate the root of the transactions
         let merkle_tree = MerkleTree::new(&transaction); 
         let root = merkle_tree.root();

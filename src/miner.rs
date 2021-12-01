@@ -153,6 +153,7 @@ impl Context {
                     transaction.push(tx.clone());
                     block_size += 1;
                     existed_hashes.push(txhashes.clone());
+                    // limit block size
                     if block_size == 10{
                         break;
                     }
