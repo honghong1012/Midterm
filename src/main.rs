@@ -67,7 +67,7 @@ fn main() {
     let (server_ctx, server) = server::new(p2p_addr, msg_tx).unwrap();
     server_ctx.start().unwrap();
 
-    // create new blockchain
+    // create new blockchain,create new mempool
     // only have the genisis block
     let mut blockchain = Arc::new(Mutex::new(Blockchain::new()));
     let mut mempool = Arc::new(Mutex::new(Mempool::new()));
@@ -100,6 +100,13 @@ fn main() {
         &mempool,
     );
     miner_ctx.start();
+
+    // start the generator
+    let tx_ctx = transaction::new(
+        &server, 
+        &mempool,
+    );
+    tx_ctx.start();
 
     // connect to known peers
     if let Some(known_peers) = matches.values_of("known_peer") {

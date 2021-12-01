@@ -31,6 +31,15 @@ impl Hashable for Transaction{
     }
 }
 
+impl Hashable for SignedTansaction{
+    fn hash(&self) -> H256 {
+        let transaction_bytes = bincode::serialize(self).unwrap();
+        let result = ring::digest::digest(&ring::digest::SHA256, &transaction_bytes);
+        let transaction_hash = result.into();
+        return transaction_hash;
+    }
+}
+
 impl Hashable for Header {
     fn hash(&self) -> H256 {
         let header_bytes = bincode::serialize(self).unwrap();

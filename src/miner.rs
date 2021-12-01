@@ -49,7 +49,7 @@ pub fn new(
         operating_state: OperatingState::Paused,
         server: server.clone(),
         blockchain: Arc::clone(blockchain),
-        mempool: Arc::clone(mempool),
+        mempool: Arc::clone(mempool)
     };
 
     let handle = Handle {
@@ -126,26 +126,6 @@ impl Context {
             }
 
             // TODO: actual mining
-            // let mut blc = self.blockchain.lock().unwrap();
-            // // return the final block hash in the longest chain 
-            // let parent = blc.tip();
-            // // initial the block
-            // let difficulty = blc.blocks.get(&parent).expect("failed").header.difficulty;
-            // let timestamp = now();
-            // // random content
-            // let transaction = vec![
-            //     Transaction{
-            //         x: 1,
-            //         y: 1,
-            //     }
-            // ];
-            // let nonce = 0;
-            // let merkle_tree = MerkleTree::new(&transaction); 
-            // let merkle_root = merkle_tree.root();
-            // let data = transaction.clone();
-            // let header = Header::new(parent, nonce, difficulty, timestamp, merkle_root);
-            // let mut block = Block::new(header, data);
-
             // increment nounce
             for nonce_attempt in 0..(u32::max_value()){
                 // everytime to calculate the nounce we need to access the lock(in 'for' loop or out of 'for' loop?)
