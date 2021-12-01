@@ -20,6 +20,7 @@ use std::process;
 use std::thread;
 use std::time;
 use crate::blockchain::*;
+use crate::transaction::*;
 use std::sync::{Arc, Mutex};
 
 fn main() {
@@ -69,6 +70,7 @@ fn main() {
     // create new blockchain
     // only have the genisis block
     let mut blockchain = Arc::new(Mutex::new(Blockchain::new()));
+    let mut mempool = Arc::new(Mutex::new(Mempool::new()));
 
     // start the worker
     let p2p_workers = matches
@@ -85,6 +87,7 @@ fn main() {
         &server,
         // worker process share the ownership
         &blockchain,
+        &mempool,
     );
     worker_ctx.start();
 
@@ -94,6 +97,7 @@ fn main() {
         &server,
         // miner share the ownership
         &blockchain,
+        &mempool,
     );
     miner_ctx.start();
 

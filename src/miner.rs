@@ -28,6 +28,7 @@ pub struct Context {
     operating_state: OperatingState,
     server: ServerHandle,
     blockchain: Arc<Mutex<Blockchain>>,
+    mempool: Arc<Mutex<Mempool>>,
 }
 
 #[derive(Clone)]
@@ -39,6 +40,7 @@ pub struct Handle {
 pub fn new(
     server: &ServerHandle,
     blockchain: &Arc<Mutex<Blockchain>>,
+    mempool: &Arc<Mutex<Mempool>>,
 ) -> (Context, Handle) {
     let (signal_chan_sender, signal_chan_receiver) = unbounded();
     
@@ -47,6 +49,7 @@ pub fn new(
         operating_state: OperatingState::Paused,
         server: server.clone(),
         blockchain: Arc::clone(blockchain),
+        mempool: Arc::clone(mempool),
     };
 
     let handle = Handle {
@@ -154,8 +157,9 @@ impl Context {
                 // random content
                 let transaction = vec![
                     Transaction{
-                      x: 1,
-                      y: 1,
+                       recipient_address:[0;20].into(),
+                       value:1, 
+                       account_nonce:1,
                      }
                 ];
                 let nonce = 0;

@@ -7,6 +7,10 @@ pub trait Hashable {
     fn hash(&self) -> H256;
 }
 
+/// to store address
+#[derive(Eq, PartialEq, Serialize, Deserialize, Clone, Hash, Default, Copy)]
+pub struct H160([u8; 20]);
+
 /// A SHA256 hash.
 #[derive(Eq, PartialEq, Serialize, Deserialize, Clone, Hash, Default, Copy)]
 pub struct H256([u8; 32]); // big endian u256
@@ -45,6 +49,16 @@ impl std::fmt::Debug for H256 {
     }
 }
 
+impl std::fmt::Debug for H160 {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(
+            f,
+            "{:>02x}{:>02x}..{:>02x}{:>02x}",
+            &self.0[0], &self.0[1], &self.0[18], &self.0[19]
+        )
+    }
+}
+
 impl std::convert::AsRef<[u8]> for H256 {
     fn as_ref(&self) -> &[u8] {
         &self.0
@@ -70,6 +84,12 @@ impl std::convert::From<&H256> for [u8; 32] {
 impl std::convert::From<[u8; 32]> for H256 {
     fn from(input: [u8; 32]) -> H256 {
         H256(input)
+    }
+}
+
+impl std::convert::From<[u8; 20]> for H160 {
+    fn from(input: [u8; 20]) -> H160 {
+        H160(input)
     }
 }
 

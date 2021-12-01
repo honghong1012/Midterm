@@ -8,6 +8,7 @@ use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
 use crate::blockchain::*;
 use crate::block::*;
+use crate::transaction::*;
 use std::thread;
 use log::info;
 
@@ -17,6 +18,7 @@ pub struct Context {
     num_worker: usize,
     server: ServerHandle,
     blockchain: Arc<Mutex<Blockchain>>,
+    mempool: Arc<Mutex<Mempool>>,
 }
 
 pub fn new(
@@ -24,12 +26,14 @@ pub fn new(
     msg_src: channel::Receiver<(Vec<u8>, peer::Handle)>,
     server: &ServerHandle,
     blockchain: &Arc<Mutex<Blockchain>>,
+    mempool: &Arc<Mutex<Mempool>>,
 ) -> Context {
     Context {
         msg_chan: msg_src,
         num_worker,
         server: server.clone(),
         blockchain: Arc::clone(blockchain),
+        mempool: Arc::clone(mempool)
     }
 }
 
@@ -186,6 +190,18 @@ impl Context {
                         }
                     }
                     
+                }
+
+                Message::NewTransactionHashes(newtxhashes) => {
+
+                }
+
+                Message::GetTransactions(txhashes) => {
+
+                }
+
+                Message::Transactions(transactions) => {
+
                 }
             }
         }
