@@ -36,7 +36,6 @@ pub struct SignedTansaction {
 }
 
 
-
 impl Transaction{
     pub fn new (recipient_address:H160, value:i32,account_nonce:i32) -> Self{
         Transaction{
@@ -56,6 +55,18 @@ impl SignedTansaction{
         }
     }
 }
+
+// impl PartialEq for Transaction {
+//     fn eq(&self, other: &Self) -> bool {
+//         self.recipient_address == other.recipient_address && self.value == other.value && self.account_nonce == other.account_nonce
+//     }
+// }
+
+// impl PartialEq for SignedTansaction {
+//     fn eq(&self, other: &Self) -> bool {
+//         self.tx == other.tx && self.signature == other.signature && self.public_key == other.public_key
+//     }
+// }
 
 pub struct Mempool {
     pub valid_tx: HashMap<H256,SignedTansaction>,
@@ -140,8 +151,9 @@ impl Context {
         // connect to server to broadcast
         let server = self.server.clone();
         let mut newtxhashes = Vec::new();
-        let mut mp = self.mempool.lock().unwrap();//?
+        // let mut mp = self.mempool.lock().unwrap();//
         loop{
+            let mut mp = self.mempool.lock().unwrap();//get the lock
             // generate random keypair
             let send = key_pair::random();
             let receive = key_pair::random();
@@ -155,6 +167,8 @@ impl Context {
             let signed_tx = SignedTansaction::new(new_tx, signature, send_pub);
             let newtxhash = signed_tx.hash();
             newtxhashes.push(newtxhash);
+            // save in memepool
+            mp.valid_tx.insert(newtxhash.clone(),signed_tx.clone());
             server.broadcast(Message::NewTransactionHashes(newtxhashes.clone()));
         }
 

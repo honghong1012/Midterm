@@ -10,7 +10,7 @@ use std::time::{ SystemTime, UNIX_EPOCH };
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Block {
     pub header: Header,
-    pub data: Vec<Transaction>,
+    pub data: Vec<SignedTansaction>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -65,7 +65,7 @@ pub fn now() -> u128{
 }
 
 impl Block{
-    pub fn new (header:Header, data:Vec<Transaction>) -> Self{
+    pub fn new (header:Header, data:Vec<SignedTansaction>) -> Self{
         Block{
             header,
             data,

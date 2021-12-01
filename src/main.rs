@@ -67,9 +67,11 @@ fn main() {
     let (server_ctx, server) = server::new(p2p_addr, msg_tx).unwrap();
     server_ctx.start().unwrap();
 
-    // create new blockchain,create new mempool
+    // create new blockchain
     // only have the genisis block
     let mut blockchain = Arc::new(Mutex::new(Blockchain::new()));
+    // create new mempool
+    // empty hashmap
     let mut mempool = Arc::new(Mutex::new(Mempool::new()));
 
     // start the worker
@@ -101,7 +103,7 @@ fn main() {
     );
     miner_ctx.start();
 
-    // start the generator
+    // start the tx generator
     let tx_ctx = transaction::new(
         &server, 
         &mempool,
