@@ -124,20 +124,44 @@ impl Context {
             if let OperatingState::ShutDown = self.operating_state {
                 return;
             }
-
             // TODO: actual mining
+            // // everytime to calculate the nounce we need to access the lock
+            let mut blc = self.blockchain.lock().unwrap();
+            let mut mp = self.mempool.lock().unwrap();
+            let mut transaction = Vec::new();
+            let mut existed_hashes = Vec::new();
+            // return the final block hash in the longest chain 
+            let parent = blc.tip();
+            let mut block_size = 0;
+            // initial the block
+            let difficulty = blc.blocks.get(&parent).expect("failed").header.difficulty;
+            // mempool empty
+            while mp.valid_tx.is_empty(){
+                let l = 1;
+            }
+            // mempool not empty
+            for (txhashes, tx) in &mp.valid_tx{
+                transaction.push(tx.clone());
+                block_size += 1;
+                existed_hashes.push(txhashes.clone());
+                info!("catch one tx!(m)");
+                // limit block size
+                if block_size == 1{
+                    break;
+                }
+            }
             // increment nounce
             for nonce_attempt in 0..(u32::max_value()){
                 // everytime to calculate the nounce we need to access the lock(in 'for' loop or out of 'for' loop?)
-                let mut blc = self.blockchain.lock().unwrap();
-                let mut mp = self.mempool.lock().unwrap();
-                let mut transaction = Vec::new();
-                let mut existed_hashes = Vec::new();
+                // let mut blc = self.blockchain.lock().unwrap();
+                // let mut mp = self.mempool.lock().unwrap();
+                // let mut transaction = Vec::new();
+                // let mut existed_hashes = Vec::new();
                 // return the final block hash in the longest chain 
-                let parent = blc.tip();
-                let mut block_size = 0;
+                // let parent = blc.tip();
+                // let mut block_size = 0;
                 // initial the block
-                let difficulty = blc.blocks.get(&parent).expect("failed").header.difficulty;
+                // let difficulty = blc.blocks.get(&parent).expect("failed").header.difficulty;
                 // random content
                 // let transaction = vec![
                 //     Transaction{
@@ -146,18 +170,18 @@ impl Context {
                 //        account_nonce:1,
                 //      }
                 // ];
-                while mp.valid_tx.is_empty(){
-                    let l = 1;
-                }
-                for (txhashes, tx) in &mp.valid_tx{
-                    transaction.push(tx.clone());
-                    block_size += 1;
-                    existed_hashes.push(txhashes.clone());
-                    // limit block size
-                    if block_size == 10{
-                        break;
-                    }
-                }
+                // while mp.valid_tx.is_empty(){
+                //     let l = 1;
+                // }
+                // for (txhashes, tx) in &mp.valid_tx{
+                //     transaction.push(tx.clone());
+                //     block_size += 1;
+                //     existed_hashes.push(txhashes.clone());
+                //     // limit block size
+                //     if block_size == 10{
+                //         break;
+                //     }
+                // }
                 let nonce = 0;
                 let merkle_tree = MerkleTree::new(&transaction); 
                 let merkle_root = merkle_tree.root();
@@ -172,7 +196,7 @@ impl Context {
                 // if match, the block is mined successfully
                 if hash <= difficulty{
                     // delete the tx in mempool
-                    for txhashes in existed_hashes{
+                    for txhashes in &existed_hashes{
                         mp.valid_tx.remove(&txhashes);
                     }
                     // insert the block into blockchain
@@ -191,6 +215,7 @@ impl Context {
                     let tip = blc.tip();
                     let num_in_blc = blc.heights.get(&tip).expect("failed");
                     info!("We have {} blocks in our blockchain(m)", &num_in_blc);
+                    break;
                 }
             }
 

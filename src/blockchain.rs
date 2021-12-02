@@ -90,85 +90,85 @@ impl Blockchain {
 
 #[cfg(any(test, test_utilities))]
 mod tests {
-    use super::*;
-    use crate::block::test::generate_random_block;
-    use crate::crypto::hash::Hashable;
+    // use super::*;
+    // use crate::block::test::generate_random_block;
+    // use crate::crypto::hash::Hashable;
 
-    #[test]
-    fn insert_one() {
-        let mut blockchain = Blockchain::new();
-        let genesis_hash = blockchain.tip();
-        let block = generate_random_block(&genesis_hash);
-        blockchain.insert(&block);
-        assert_eq!(blockchain.tip(), block.hash());
-    }
+    // #[test]
+    // fn insert_one() {
+    //     let mut blockchain = Blockchain::new();
+    //     let genesis_hash = blockchain.tip();
+    //     let block = generate_random_block(&genesis_hash);
+    //     blockchain.insert(&block);
+    //     assert_eq!(blockchain.tip(), block.hash());
+    // }
 
-    #[test]
-    fn insert_several() {
-        let mut blockchain = Blockchain::new();
-        let genesis_hash = blockchain.tip();
-        let block = generate_random_block(&genesis_hash);
-        let block2 = generate_random_block(&genesis_hash);
-        let block3 = generate_random_block(&block2.hash());
-        let block4 = generate_random_block(&block.hash());
-        let block5 = generate_random_block(&block3.hash());
-        blockchain.insert(&block);
-        blockchain.insert(&block2);
-        blockchain.insert(&block3);
-        blockchain.insert(&block4);
-        blockchain.insert(&block5);
-        assert_eq!(blockchain.tip(), block5.hash());
-    }
+    // #[test]
+    // fn insert_several() {
+    //     let mut blockchain = Blockchain::new();
+    //     let genesis_hash = blockchain.tip();
+    //     let block = generate_random_block(&genesis_hash);
+    //     let block2 = generate_random_block(&genesis_hash);
+    //     let block3 = generate_random_block(&block2.hash());
+    //     let block4 = generate_random_block(&block.hash());
+    //     let block5 = generate_random_block(&block3.hash());
+    //     blockchain.insert(&block);
+    //     blockchain.insert(&block2);
+    //     blockchain.insert(&block3);
+    //     blockchain.insert(&block4);
+    //     blockchain.insert(&block5);
+    //     assert_eq!(blockchain.tip(), block5.hash());
+    // }
 
-    #[test]
-    fn verify_several() {
-        let mut blockchain = Blockchain::new();
-        let genesis_hash = blockchain.tip();
-        let block = generate_random_block(&genesis_hash);
-        let block2 = generate_random_block(&genesis_hash);
-        let block3 = generate_random_block(&block2.hash());
-        let block4 = generate_random_block(&block.hash());
-        let block5 = generate_random_block(&block3.hash());
-        blockchain.insert(&block);
-        blockchain.insert(&block2);
-        blockchain.insert(&block3);
-        blockchain.insert(&block4);
-        blockchain.insert(&block5);
-        let result = blockchain.all_blocks_in_longest_chain();
-        for i in 0..result.len() {
-            println!("{}", result[i]);
-        }
-        assert_eq!(result, vec![ genesis_hash, block2.hash(), block3.hash(),  block5.hash()]);
-    }
+    // #[test]
+    // fn verify_several() {
+    //     let mut blockchain = Blockchain::new();
+    //     let genesis_hash = blockchain.tip();
+    //     let block = generate_random_block(&genesis_hash);
+    //     let block2 = generate_random_block(&genesis_hash);
+    //     let block3 = generate_random_block(&block2.hash());
+    //     let block4 = generate_random_block(&block.hash());
+    //     let block5 = generate_random_block(&block3.hash());
+    //     blockchain.insert(&block);
+    //     blockchain.insert(&block2);
+    //     blockchain.insert(&block3);
+    //     blockchain.insert(&block4);
+    //     blockchain.insert(&block5);
+    //     let result = blockchain.all_blocks_in_longest_chain();
+    //     for i in 0..result.len() {
+    //         println!("{}", result[i]);
+    //     }
+    //     assert_eq!(result, vec![ genesis_hash, block2.hash(), block3.hash(),  block5.hash()]);
+    // }
 
-    #[test]
-    fn verify_one() {
-        let mut blockchain = Blockchain::new();
-        let genesis_hash = blockchain.tip();
-        let block = generate_random_block(&genesis_hash);
+    // #[test]
+    // fn verify_one() {
+    //     let mut blockchain = Blockchain::new();
+    //     let genesis_hash = blockchain.tip();
+    //     let block = generate_random_block(&genesis_hash);
 
-        blockchain.insert(&block);
+    //     blockchain.insert(&block);
 
-        let result = blockchain.all_blocks_in_longest_chain();
-        for i in 0..result.len() {
-            println!("{}", result[i]);
-        }
-        assert_eq!(result, vec![ genesis_hash, block.hash()]);
-    }
+    //     let result = blockchain.all_blocks_in_longest_chain();
+    //     for i in 0..result.len() {
+    //         println!("{}", result[i]);
+    //     }
+    //     assert_eq!(result, vec![ genesis_hash, block.hash()]);
+    // }
 
-    #[test]
-    fn verify_zero() {
-        let mut blockchain = Blockchain::new();
-        let genesis_hash = blockchain.tip();
-        //let block = generate_random_block(&genesis_hash);
+    // #[test]
+    // fn verify_zero() {
+    //     let mut blockchain = Blockchain::new();
+    //     let genesis_hash = blockchain.tip();
+    //     //let block = generate_random_block(&genesis_hash);
 
-        //blockchain.insert(&block);
+    //     //blockchain.insert(&block);
 
-        let result = blockchain.all_blocks_in_longest_chain();
-        for i in 0..result.len() {
-            println!("{}", result[i]);
-        }
-        assert_eq!(result, vec![genesis_hash]);
-    }
+    //     let result = blockchain.all_blocks_in_longest_chain();
+    //     for i in 0..result.len() {
+    //         println!("{}", result[i]);
+    //     }
+    //     assert_eq!(result, vec![genesis_hash]);
+    // }
 
 }

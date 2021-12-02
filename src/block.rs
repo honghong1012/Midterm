@@ -10,7 +10,7 @@ use std::time::{ SystemTime, UNIX_EPOCH };
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Block {
     pub header: Header,
-    pub data: Vec<SignedTansaction>,
+    pub data: Vec<SignedTransaction>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -49,7 +49,7 @@ pub fn now() -> u128{
 }
 
 impl Block{
-    pub fn new (header:Header, data:Vec<SignedTansaction>) -> Self{
+    pub fn new (header:Header, data:Vec<SignedTransaction>) -> Self{
         Block{
             header,
             data,
@@ -74,27 +74,27 @@ pub mod test {
     use super::*;
     use crate::crypto::hash::H256;
 
-    pub fn generate_random_block(parent: &H256) -> Block {
-        // generate the random transactions
-        let transaction: Vec<SignedTransaction> = vec![Default::default(), Default::default()];
-        // use merkle tree to caculate the root of the transactions
-        let merkle_tree = MerkleTree::new(&transaction); 
-        let root = merkle_tree.root();
-        let merkle_root = root;
-        // create random nonce
-        let nonce = rand::thread_rng().gen_range(1,5000);
-        // timestamp
-        let timestamp = now();
-        // clone parent hash value
-        let parent = parent.clone();
-        // temporarily use the type H256 as difficulty
-        let difficulty = parent.clone();
-        // generate new header
-        let new_header = Header::new(parent, nonce, difficulty, timestamp, merkle_root);
-        let header = new_header;
-        let data = transaction;
-        // generate new block
-        let new_block = Block::new(header, data);
-        return new_block;
-    }
+    // pub fn generate_random_block(parent: &H256) -> Block {
+    //     // generate the random transactions
+    //     let transaction: Vec<SignedTransaction> = vec![Default::default(), Default::default()];
+    //     // use merkle tree to caculate the root of the transactions
+    //     let merkle_tree = MerkleTree::new(&transaction); 
+    //     let root = merkle_tree.root();
+    //     let merkle_root = root;
+    //     // create random nonce
+    //     let nonce = rand::thread_rng().gen_range(1,5000);
+    //     // timestamp
+    //     let timestamp = now();
+    //     // clone parent hash value
+    //     let parent = parent.clone();
+    //     // temporarily use the type H256 as difficulty
+    //     let difficulty = parent.clone();
+    //     // generate new header
+    //     let new_header = Header::new(parent, nonce, difficulty, timestamp, merkle_root);
+    //     let header = new_header;
+    //     let data = transaction;
+    //     // generate new block
+    //     let new_block = Block::new(header, data);
+    //     return new_block;
+    // }
 }

@@ -79,9 +79,10 @@ impl Context {
                     // if get newblockhashes message and the hashes not in the blockchain
                     // return getblocks message
                     let mut lost_block = Vec::new();
+                    info!("get blockhashes!(w)");
                     for hash in &newblockhashes{
                         if !blc.blocks.contains_key(&hash){
-                            lost_block.push(hash.clone());
+                            lost_block.push(hash.clone()); 
                         }
                     }
                     peer.write(Message::GetBlocks(lost_block));
@@ -91,6 +92,7 @@ impl Context {
                     // if get getblocks message and the hashes in ur blockchain
                     // return blocks message
                     let mut exisited_hashes = Vec::new();
+                    info!("get getblocks mess!");
                     for hash in &blockhashes{
                         if blc.blocks.contains_key(&hash){
                             let block_info = blc.blocks.get(&hash).expect("failed");
@@ -201,6 +203,7 @@ impl Context {
                         }
                     }
                     peer.write(Message::GetTransactions(lost_tx));
+                    info!("new transaction hashes received(w)");//test
                 }
 
                 Message::GetTransactions(txhashes) => {
@@ -212,14 +215,28 @@ impl Context {
                         }
                     }
                     peer.write(Message::Transactions(exisited_hashes));
+                    info!("To get tx(w)");
                 }
 
-                Message::Transactions(transactions) => {
+                Message::Transactions(signedtransactions) => {
                     // if get transactions, do checks
                     // 1.check if signature is signed correctly by the public key
                     // 2.double spending check
                     // 3.when get blocks, check transactions again(send message to get transactions info)
                     // mempool operations!
+                    info!("got new tx!(w)");
+                    for signedtx in &signedtransactions{
+                        let transaction = &signedtx.tx;
+                        let sig = &signedtx.signature;
+                        let public_key = &signedtx.public_key;
+                        // if the transaciton valid and not in mempool(not included in block)
+                        if verify(transaction, public_key.clone(), sig.clone()){
+                            if !mp.valid_tx.contains_key(&transaction.hash()){
+                                mp.valid_tx.insert(transaction.hash().clone(),signedtx.clone());
+                                info!("new tx in pool!");
+                            }
+                        }
+                    }
                 }
             }
         }

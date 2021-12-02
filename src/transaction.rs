@@ -109,20 +109,35 @@ pub fn conversion(public_key: &<Ed25519KeyPair as KeyPair>::PublicKey) -> [u8;20
     return raw_hash;
 }
 
-/// Verify digital signature of a transaction, using public key instead of secret key
-pub fn verify(t: &Transaction, public_key: &<Ed25519KeyPair as KeyPair>::PublicKey, signature: &Signature) -> bool {
+// // Verify digital signature of a transaction, using public key instead of secret key
+// pub fn verify(t: &Transaction, public_key: &<Ed25519KeyPair as KeyPair>::PublicKey, signature: &Signature) -> bool {
+//     // use the public key to verify
+//     let bytes_transaction = bincode::serialize(&t).unwrap();
+//     // let bytes = String::from_utf8(bytes_transaction).unwrap();//
+//     let peer_public_key_bytes = public_key.as_ref();
+//     let peer_public_key = signature::UnparsedPublicKey::new(&signature::ED25519, peer_public_key_bytes);
+//     if let Ok(result) = peer_public_key.verify(bytes_transaction.as_ref(), signature.as_ref()){
+//         return true;
+//     }
+//     else{
+//         return false;
+//     }
+//     // output a bool
+// }
+
+pub fn verify(t: &Transaction, public_key: Vec<u8>, signature: Vec<u8>) -> bool {
     // use the public key to verify
     let bytes_transaction = bincode::serialize(&t).unwrap();
-    // let bytes = String::from_utf8(bytes_transaction).unwrap();//
-    let peer_public_key_bytes = public_key.as_ref();
+    let peer_public_key_bytes = &public_key;
     let peer_public_key = signature::UnparsedPublicKey::new(&signature::ED25519, peer_public_key_bytes);
-    if let Ok(result) = peer_public_key.verify(bytes_transaction.as_ref(), signature.as_ref()){
+    // output a bool
+    if let Ok(result) = peer_public_key.verify(bytes_transaction.as_ref(), &signature){
         return true;
     }
     else{
         return false;
     }
-    // output a bool
+    
 }
 
 // transaction generator
@@ -178,6 +193,8 @@ impl Context {
             mp.valid_tx.insert(newtxhash.clone(),signed_tx.clone());
             server.broadcast(Message::NewTransactionHashes(newtxhashes.clone()));
             info!("new transaction occured!");//test
+            let interval = time::Duration::from_micros(1000000 as u64);
+            thread::sleep(interval);
         }
 
     }
