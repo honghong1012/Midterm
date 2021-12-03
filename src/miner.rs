@@ -233,12 +233,27 @@ impl Context {
                 // if match, the block is mined successfully
                 if hash <= difficulty{
                     // delete the tx in mempool
+                    // update the state
                     let mut mp = self.mempool.lock().unwrap();
+                    let mut blc = self.blockchain.lock().unwrap();
                     for txhashes in &existed_hashes{
+                        let signedtx = mp.valid_tx.get(txhashes).expect("failed");
+                        let tx = &signedtx.tx;
+                        let account = &signedtx.public_key;
+                        let spend_value = tx.value;
+                        let an_new = tx.account_nonce;
+
+                        let state = &blc.state;
+                        let mut public_bytes = [0; 20];
+                        public_bytes.copy_from_slice(&account);
+                        let (an_state,b) = state.get(&public_bytes.into()).expect("failed").clone();
+                        blc.state.remove(&public_bytes.into());
+                        blc.state.insert(public_bytes.into(),(an_new, b-spend_value));
                         mp.valid_tx.remove(&txhashes);
                     }
                     drop(mp);
-                    
+                    drop(blc);
+
                     // insert the block into blockchain
                     let mut blc = self.blockchain.lock().unwrap();
                     blc.insert(&block);
@@ -255,6 +270,10 @@ impl Context {
                     info!("Timestamp:{}", &block.header.timestamp);
                     let tip = blc.tip();
                     let num_in_blc = blc.heights.get(&tip).expect("failed");
+                    for tx in transaction{
+                        let trans = tx.tx;
+                        info!("receiver:{},value:{},account_nonce:{}",trans.recipient_address,trans.value,trans.account_nonce);
+                    }
                     info!("We have {} blocks in our blockchain(m)", &num_in_blc);
                     drop(blc);
                     break;

@@ -23,8 +23,8 @@ pub struct Transaction {
     // pub x: i32,
     // pub y: i32,
     pub recipient_address:H160,
-    pub value:i32, 
-    pub account_nonce:i32,
+    pub value:u32, 
+    pub account_nonce:u8,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -37,7 +37,7 @@ pub struct SignedTransaction {
 
 
 impl Transaction{
-    pub fn new (recipient_address:H160, value:i32,account_nonce:i32) -> Self{
+    pub fn new (recipient_address:H160, value:u32,account_nonce:u8) -> Self{
         Transaction{
             recipient_address,
             value,
@@ -144,15 +144,18 @@ pub fn verify(t: &Transaction, public_key: Vec<u8>, signature: Vec<u8>) -> bool 
 pub struct Context {
     /// Channel for receiving control signal
     server: ServerHandle,
+    blockchain: Arc<Mutex<Blockchain>>,
     mempool: Arc<Mutex<Mempool>>,
 }
 
 pub fn new(
     server: &ServerHandle,
+    blockchain: &Arc<Mutex<Blockchain>>,
     mempool: &Arc<Mutex<Mempool>>,
 ) -> Context {
     Context {
         server: server.clone(),
+        blockchain: Arc::clone(blockchain),
         mempool: Arc::clone(mempool)
     }
 }
@@ -170,25 +173,76 @@ impl Context {
 
     fn tx_loop(&mut self) {
         // connect to server to broadcast
-        // let server = self.server.clone();
         let mut newtxhashes = Vec::new();
-        // let mut mp = self.mempool.lock().unwrap();//
+        let mut account = Vec::new();
+
+        // initiate diffrent key pair for different node
+        for user in 1..3{
+            let u = key_pair::random();
+            let public_key = u.public_key();
+            let account_address = conversion(public_key).into();
+            let balance = 50;
+            let account_nonce = user;
+            account.push(u);
+            let mut blc = self.blockchain.lock().unwrap();
+            // insert the state into blockchain
+            blc.state.insert(account_address, (account_nonce, balance));
+            drop(blc);
+        }
+
         loop{
-            
             // generate random keypair
             let send = key_pair::random();
             let receive = key_pair::random();
             let public_key = receive.public_key();
-            let recipient_address = conversion(public_key);
-            let value = 1;
-            let account_nonce = 1;
-            let new_tx = Transaction::new(recipient_address.into(), value, account_nonce);
-            let signature = sign(&new_tx, &send).as_ref().to_vec();
-            let send_pub = send.public_key().as_ref().to_vec();
-            let signed_tx = SignedTransaction::new(new_tx, signature, send_pub);
+
+            // let blc = self.blockchain.lock().unwrap();
+            // // insert the state into blockchain
+            // let st = &blc.state;
+            // drop(blc);
+
+            let mut rng = rand::thread_rng();
+
+            // choose receive account
+            let blc = self.blockchain.lock().unwrap();
+            let mut num = 0;
+            let mut recipient_address:H160 = [0;20].into();
+            let target_receive = rng.gen_range(0, &blc.state.len());
+            for (receiver,x) in &blc.state{
+                if num == target_receive{
+                    recipient_address = receiver.clone();
+                    break;
+                }
+                else{
+                    num += 1;
+                }
+            }
+            // choose send account 
+            let account_num = account.len();
+            let chosen_send = rng.gen_range(0, account_num);
+            let send = conversion(&account[chosen_send].public_key()).into();
+            let (an,b) = blc.state.get(&send).expect("failed");
+            
+            
+            // choose send value
+            let mut value = 1;
+            // if b > &0 {
+            //     value = rng.gen_range(1, b);
+            // }
+            // else{
+            //     continue;
+            // }
+
+            // set nonce
+            let account_nonce = an + 1;
+            drop(blc);
+
+            let new_tx = Transaction::new(recipient_address, value, account_nonce.into());
+            let signature = sign(&new_tx, &account[chosen_send]).as_ref().to_vec();
+            let signed_tx = SignedTransaction::new(new_tx, signature, conversion(account[chosen_send].public_key()).to_vec());
             let newtxhash = signed_tx.hash();
             newtxhashes.push(newtxhash);
-
+            
             //get the lock
             let mut mp = self.mempool.lock().unwrap();
             // save in memepool

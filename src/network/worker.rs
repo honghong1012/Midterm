@@ -57,8 +57,8 @@ impl Context {
         loop {
             let msg = self.msg_chan.recv().unwrap();
             let (msg, peer) = msg;
-            let mut blc = self.blockchain.lock().unwrap();
-            let mut mp = self.mempool.lock().unwrap();
+            // let mut blc = self.blockchain.lock().unwrap();
+            // let mut mp = self.mempool.lock().unwrap();
             let msg: Message = bincode::deserialize(&msg).unwrap();
             match msg {
                 Message::Ping(nonce) => {
@@ -79,12 +79,14 @@ impl Context {
                     // if get newblockhashes message and the hashes not in the blockchain
                     // return getblocks message
                     let mut lost_block = Vec::new();
+                    let mut blc = self.blockchain.lock().unwrap();
                     info!("get blockhashes!(w)");
                     for hash in &newblockhashes{
                         if !blc.blocks.contains_key(&hash){
                             lost_block.push(hash.clone()); 
                         }
                     }
+                    drop(blc);
                     peer.write(Message::GetBlocks(lost_block));
                 }
 
@@ -92,6 +94,7 @@ impl Context {
                     // if get getblocks message and the hashes in ur blockchain
                     // return blocks message
                     let mut exisited_hashes = Vec::new();
+                    let mut blc = self.blockchain.lock().unwrap();
                     info!("get getblocks mess!");
                     for hash in &blockhashes{
                         if blc.blocks.contains_key(&hash){
@@ -99,6 +102,7 @@ impl Context {
                             exisited_hashes.push(block_info.clone());
                         }
                     }
+                    drop(blc);
                     peer.write(Message::Blocks(exisited_hashes));
                 }
 
@@ -108,6 +112,7 @@ impl Context {
                     let mut new_blocks = Vec::new();
                     let mut lost_block = Vec::new();
                     for block in &blocks{
+                        let mut blc = self.blockchain.lock().unwrap();
                         let hash = &block.hash();
                         if !blc.blocks.contains_key(hash){// if the block doesn't exisit in the blockchain
                             // Checks
@@ -190,12 +195,15 @@ impl Context {
                             let tip = blc.tip();
                             let num_in_blc = blc.heights.get(&tip).expect("failed");
                             info!("We have {} blocks in our blockchain(w)", &num_in_blc);
+                            
                         }
+                        drop(blc);
                     }
                     
                 }
 
                 Message::NewTransactionHashes(newtxhashes) => {
+                    let mut mp = self.mempool.lock().unwrap();
                     let mut lost_tx = Vec::new();
                     for hash in &newtxhashes{
                         if !mp.valid_tx.contains_key(&hash){
@@ -203,11 +211,13 @@ impl Context {
                         }
                     }
                     peer.write(Message::GetTransactions(lost_tx));
+                    drop(mp);
                     info!("new transaction hashes received(w)");//test
                 }
 
                 Message::GetTransactions(txhashes) => {
                     let mut exisited_hashes = Vec::new();
+                    let mut mp = self.mempool.lock().unwrap();
                     for hash in &txhashes{
                         if mp.valid_tx.contains_key(&hash){
                             let tx_info = mp.valid_tx.get(&hash).expect("failed");
@@ -215,33 +225,53 @@ impl Context {
                         }
                     }
                     peer.write(Message::Transactions(exisited_hashes));
+                    drop(mp);
                     info!("To get tx(w)");
                 }
 
                 Message::Transactions(signedtransactions) => {
-                    // if get transactions, do checks
-                    // 1.check if signature is signed correctly by the public key
-                    // 2.double spending check
-                    // 3.when get blocks, check transactions again(send message to get transactions info)
                     // mempool operations!
                     info!("got new tx!(w)");
+                    // if get transactions, do checks
                     for signedtx in &signedtransactions{
                         let transaction = &signedtx.tx;
                         let sig = &signedtx.signature;
                         let public_key = &signedtx.public_key;
-                        // if the transaciton valid and not in mempool(not included in block)
-                        if verify(transaction, public_key.clone(), sig.clone()){
-                            if !mp.valid_tx.contains_key(&transaction.hash()){
-                                mp.valid_tx.insert(transaction.hash().clone(),signedtx.clone());
-                                info!("new tx in pool!");
-                            }
+                        // 1.check if signature is signed correctly by the public key
+                        if !verify(transaction, public_key.clone(), sig.clone()){
+                            continue;
                         }
+
+                        let mut blc = self.blockchain.lock().unwrap();
+                        let state = &blc.state;
+                        let mut public_bytes = [0; 20];
+                        public_bytes.copy_from_slice(&public_key);
+                        //  check if the pbkey match the owners address
+                        if !state.contains_key(&public_bytes.into()){
+                            continue;
+                        }
+
+                        // 2.double spending check
+                        let spend_value = transaction.value;
+                        let an = transaction.account_nonce;
+                        let (an_state,b) = state.get(&public_bytes.into()).expect("failed");
+                        if spend_value > b.clone() || an != an_state + 1{
+                            continue;
+                        }
+                        drop(blc);
+                        let mut mp = self.mempool.lock().unwrap();
+                        if !mp.valid_tx.contains_key(&transaction.hash()){
+                            mp.valid_tx.insert(transaction.hash().clone(),signedtx.clone());
+                            info!("new tx in pool!");
+                        }
+                        drop(mp);
+                        // 3.when get blocks, check transactions again(send message to get transactions info)
                     }
                 }
                 
             }
-            drop(blc);
-            drop(mp);
+            // drop(blc);
+            // drop(mp);
         }
     }
 }

@@ -1,12 +1,17 @@
 use crate::block::{Block, Header};
-use crate::crypto::hash::{H256, Hashable};
+use crate::crypto::hash::{H256,H160, Hashable};
 use std::collections::HashMap;
+use ring::signature::{self,Ed25519KeyPair, Signature, KeyPair, VerificationAlgorithm, EdDSAParameters};
+use crate::crypto::key_pair;
 use super::*;
+
 
 pub struct Blockchain{
     // use hashmap to save the blocks and heights
     pub blocks: HashMap<H256, Block>,
     pub heights: HashMap<H256, u32>,
+    pub state: HashMap<H160, (u8, u32)>,
+    // pub account: Vec<Ed25519KeyPair>,
     // pub tip: H256,
 }
 
@@ -26,14 +31,29 @@ impl Blockchain {
         let header = genesis_header;
         let genesis = Block{header, data};
         let genesis_hash = genesis.hash();
+        // initiate
         let mut blocks = HashMap::new();
         let mut heights = HashMap::new();
+        let mut state = HashMap::new();
+        // let mut account = Vec::new();
+        for user in 1..5{
+            let u = key_pair::random();
+            let public_key = u.public_key();
+            let account_address = conversion(public_key).into();
+            let balance = 20;
+            let account_nonce = user;
+            // account.push(u);
+            state.insert(account_address, (account_nonce, balance));
+        }
         // for the genesis block, the height must be 0
         blocks.insert(genesis_hash, genesis);
         heights.insert(genesis_hash, 0);
+        // initial coin offering
         Blockchain{
             blocks,
             heights,
+            state,
+            // account,
         }
     }
 

@@ -106,6 +106,7 @@ fn main() {
     // start the tx generator
     let tx_ctx = transaction::new(
         &server, 
+        &blockchain,
         &mempool,
     );
     tx_ctx.start();
