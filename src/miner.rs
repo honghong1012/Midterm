@@ -100,7 +100,6 @@ impl Context {
         // main mining loop
         let mut block_num = 0;
         // connect server to broadcast
-        let server = self.server.clone();
         let mut newblockhashes = Vec::new();
         loop {
             // check and react to control signals
@@ -126,42 +125,78 @@ impl Context {
             }
             // TODO: actual mining
             // // everytime to calculate the nounce we need to access the lock
-            let mut blc = self.blockchain.lock().unwrap();
-            let mut mp = self.mempool.lock().unwrap();
-            let mut transaction = Vec::new();
-            let mut existed_hashes = Vec::new();
-            // return the final block hash in the longest chain 
-            let parent = blc.tip();
-            let mut block_size = 0;
-            // initial the block
-            let difficulty = blc.blocks.get(&parent).expect("failed").header.difficulty;
+            // let mut blc = self.blockchain.lock().unwrap();
+            // let mut mp = self.mempool.lock().unwrap();
+            // let mut transaction = Vec::new();
+            // let mut existed_hashes = Vec::new();
+            // let mut siggg = Vec::new();
+            // let mut pubbb = Vec::new();
+            // siggg.push(0);
+            // pubbb.push(0);
+            // // return the final block hash in the longest chain 
+            // let parent = blc.tip();
+            // let mut block_size = 0;
+            // // initial the block
+            // let difficulty = blc.blocks.get(&parent).expect("failed").header.difficulty;
+            // let transaction = 
+            //         Transaction{
+            //            recipient_address:[0;20].into(),
+            //            value:1, 
+            //            account_nonce:1,
+            //          };
+            // let signedtx = vec![
+            //         SignedTransaction{
+            //             tx:transaction,
+            //             signature:siggg,
+            //             public_key:pubbb,
+            //         }
+            // ];
+            
             // mempool empty
-            while mp.valid_tx.is_empty(){
-                let l = 1;
-            }
-            // mempool not empty
-            for (txhashes, tx) in &mp.valid_tx{
-                transaction.push(tx.clone());
-                block_size += 1;
-                existed_hashes.push(txhashes.clone());
-                info!("catch one tx!(m)");
-                // limit block size
-                if block_size == 1{
-                    break;
-                }
-            }
+            // while mp.valid_tx.is_empty(){
+            //     let l = 1;
+            // }
+            // // mempool not empty
+            // for (txhashes, tx) in &mp.valid_tx{
+            //     transaction.push(tx.clone());
+            //     block_size += 1;
+            //     existed_hashes.push(txhashes.clone());
+            //     info!("catch one tx!(m)");
+            //     // limit block size
+            //     if block_size == 1{
+            //         break;
+            //     }
+            // }
             // increment nounce
             for nonce_attempt in 0..(u32::max_value()){
                 // everytime to calculate the nounce we need to access the lock(in 'for' loop or out of 'for' loop?)
-                // let mut blc = self.blockchain.lock().unwrap();
-                // let mut mp = self.mempool.lock().unwrap();
-                // let mut transaction = Vec::new();
-                // let mut existed_hashes = Vec::new();
+                let mut transaction = Vec::new();
+                let mut existed_hashes = Vec::new();
                 // return the final block hash in the longest chain 
-                // let parent = blc.tip();
-                // let mut block_size = 0;
+                let mut blc = self.blockchain.lock().unwrap();
+                let parent = blc.tip();
+                let mut block_size = 0;
                 // initial the block
-                // let difficulty = blc.blocks.get(&parent).expect("failed").header.difficulty;
+                let difficulty = blc.blocks.get(&parent).expect("failed").header.difficulty;
+                drop(blc);
+                // test part
+                // let mut siggg = Vec::new();
+                // let mut pubbb = Vec::new();
+                // siggg.push(0);
+                // pubbb.push(0);
+                // let transaction = 
+                //     Transaction{
+                //        recipient_address:[0;20].into(),
+                //        value:1, 
+                //        account_nonce:1,
+                //      };
+                // let signedtx = vec![
+                //     SignedTransaction{
+                //         tx:transaction,
+                //         signature:siggg,
+                //         public_key:pubbb,
+                //     }
+                //  ];
                 // random content
                 // let transaction = vec![
                 //     Transaction{
@@ -170,18 +205,20 @@ impl Context {
                 //        account_nonce:1,
                 //      }
                 // ];
-                // while mp.valid_tx.is_empty(){
-                //     let l = 1;
-                // }
-                // for (txhashes, tx) in &mp.valid_tx{
-                //     transaction.push(tx.clone());
-                //     block_size += 1;
-                //     existed_hashes.push(txhashes.clone());
-                //     // limit block size
-                //     if block_size == 10{
-                //         break;
-                //     }
-                // }
+                let mut mp = self.mempool.lock().unwrap();
+                while mp.valid_tx.is_empty(){
+                    let l = 1;
+                }
+                for (txhashes, tx) in &mp.valid_tx{
+                    transaction.push(tx.clone());
+                    block_size += 1;
+                    existed_hashes.push(txhashes.clone());
+                    // limit block size
+                    if block_size == 2{
+                        break;
+                    }
+                }
+                drop(mp);
                 let nonce = 0;
                 let merkle_tree = MerkleTree::new(&transaction); 
                 let merkle_root = merkle_tree.root();
@@ -196,16 +233,20 @@ impl Context {
                 // if match, the block is mined successfully
                 if hash <= difficulty{
                     // delete the tx in mempool
+                    let mut mp = self.mempool.lock().unwrap();
                     for txhashes in &existed_hashes{
                         mp.valid_tx.remove(&txhashes);
                     }
+                    drop(mp);
+                    
                     // insert the block into blockchain
+                    let mut blc = self.blockchain.lock().unwrap();
                     blc.insert(&block);
                     // change the blocknum
                     block_num = block_num + 1;
                     // broadcast the new block hashes to peer
                     newblockhashes.push(hash);
-                    server.broadcast(Message::NewBLockHashes(newblockhashes.clone()));
+                    self.server.broadcast(Message::NewBLockHashes(newblockhashes.clone()));
                     // print the length of the block
                     let block_size: Vec<u8> = bincode::serialize(&block).unwrap();
                     info!("Current block size is {}", &block_size.len());
@@ -215,8 +256,11 @@ impl Context {
                     let tip = blc.tip();
                     let num_in_blc = blc.heights.get(&tip).expect("failed");
                     info!("We have {} blocks in our blockchain(m)", &num_in_blc);
+                    drop(blc);
                     break;
                 }
+                
+                
             }
 
             if let OperatingState::Run(i) = self.operating_state {

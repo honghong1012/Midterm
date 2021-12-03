@@ -165,16 +165,16 @@ impl Context {
                 self.tx_loop();
             })
             .unwrap();
-        info!("tx loop stop!");
+        info!("tx loop start!");
     }
 
     fn tx_loop(&mut self) {
         // connect to server to broadcast
-        let server = self.server.clone();
+        // let server = self.server.clone();
         let mut newtxhashes = Vec::new();
         // let mut mp = self.mempool.lock().unwrap();//
         loop{
-            let mut mp = self.mempool.lock().unwrap();//get the lock
+            
             // generate random keypair
             let send = key_pair::random();
             let receive = key_pair::random();
@@ -188,12 +188,19 @@ impl Context {
             let signed_tx = SignedTransaction::new(new_tx, signature, send_pub);
             let newtxhash = signed_tx.hash();
             newtxhashes.push(newtxhash);
+
+            //get the lock
+            let mut mp = self.mempool.lock().unwrap();
             // save in memepool
-            // actually we need to broadcast to worker first,then worker check and add it into mempool
             mp.valid_tx.insert(newtxhash.clone(),signed_tx.clone());
-            server.broadcast(Message::NewTransactionHashes(newtxhashes.clone()));
+            drop(mp);
+
+            // we need to broadcast to worker first,then worker check and add it into mempool
+            self.server.broadcast(Message::NewTransactionHashes(newtxhashes.clone()));
             info!("new transaction occured!");//test
-            let interval = time::Duration::from_micros(1000000 as u64);
+            
+            // thread sleep
+            let interval = time::Duration::from_micros(10000000 as u64);
             thread::sleep(interval);
         }
 

@@ -238,7 +238,10 @@ impl Context {
                         }
                     }
                 }
+                
             }
+            drop(blc);
+            drop(mp);
         }
     }
 }
