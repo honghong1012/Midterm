@@ -80,7 +80,7 @@ impl Context {
                     // return getblocks message
                     let mut lost_block = Vec::new();
                     let mut blc = self.blockchain.lock().unwrap();
-                    info!("get blockhashes!(w)");
+                    // info!("get blockhashes!(w)");
                     for hash in &newblockhashes{
                         if !blc.blocks.contains_key(&hash){
                             lost_block.push(hash.clone()); 
@@ -95,7 +95,7 @@ impl Context {
                     // return blocks message
                     let mut exisited_hashes = Vec::new();
                     let mut blc = self.blockchain.lock().unwrap();
-                    info!("get getblocks mess!");
+                    // info!("get getblocks mess!");
                     for hash in &blockhashes{
                         if blc.blocks.contains_key(&hash){
                             let block_info = blc.blocks.get(&hash).expect("failed");
@@ -212,7 +212,7 @@ impl Context {
                     }
                     peer.write(Message::GetTransactions(lost_tx));
                     drop(mp);
-                    info!("new transaction hashes received(w)");//test
+                    // info!("new transaction hashes received(w)");//test
                 }
 
                 Message::GetTransactions(txhashes) => {
@@ -226,7 +226,7 @@ impl Context {
                     }
                     peer.write(Message::Transactions(exisited_hashes));
                     drop(mp);
-                    info!("To get tx(w)");
+                    // info!("To get tx(w)");
                 }
 
                 Message::Transactions(signedtransactions) => {

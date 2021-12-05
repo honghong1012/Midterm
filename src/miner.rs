@@ -252,10 +252,10 @@ impl Context {
                         mp.valid_tx.remove(&txhashes);
                     }
                     drop(mp);
-                    drop(blc);
+                    // drop(blc);
 
                     // insert the block into blockchain
-                    let mut blc = self.blockchain.lock().unwrap();
+                    // let mut blc = self.blockchain.lock().unwrap();
                     blc.insert(&block);
                     // change the blocknum
                     block_num = block_num + 1;
@@ -268,12 +268,15 @@ impl Context {
                     // print the timestamp and number of blocks mined
                     info!("Successfully mine {} block(s)", &block_num);
                     info!("Timestamp:{}", &block.header.timestamp);
-                    let tip = blc.tip();
-                    let num_in_blc = blc.heights.get(&tip).expect("failed");
                     for tx in transaction{
                         let trans = tx.tx;
                         info!("receiver:{},value:{},account_nonce:{}",trans.recipient_address,trans.value,trans.account_nonce);
                     }
+                    for (ac,(n,b)) in &blc.state{
+                        info!("Account:{},nonce:{},balance:{}", ac,n,b);
+                    }
+                    let tip = blc.tip();
+                    let num_in_blc = blc.heights.get(&tip).expect("failed");
                     info!("We have {} blocks in our blockchain(m)", &num_in_blc);
                     drop(blc);
                     break;
